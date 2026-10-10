@@ -1,5 +1,15 @@
 # GlitchTip panel
 
+## Optional issue archive adapter
+
+`archive.mjs` declares disabled-by-default archive synchronization and a resolver
+against a caller-owned authenticated `readIssue`/`resolveIssue` adapter. It checks
+the same issue identity and confirms resolved state after writing. Already
+resolved issues do not repeat writes; uncertain writes return unknown. Archived
+card restoration does not unresolve the issue. Events and recurrence are retained.
+The current signal panel does not call this handler. HTTP adapter, signed host
+delivery, settings, permissions and provider acceptance remain pending.
+
 Standalone third party Langboard panel service. Node 22 or newer; no core checkout, React installation, copied theme, or browser provider credentials. The vendored npm SDK package version 0.2.0, including its signal request channel, is the only dependency.
 
 ```sh

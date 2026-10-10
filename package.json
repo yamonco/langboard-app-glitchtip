@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test panel.test.mjs",
+    "test": "node --test panel.test.mjs archive.test.mjs",
     "manifest": "node server.mjs --manifest"
   },
   "dependencies": {
