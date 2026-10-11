@@ -107,3 +107,50 @@ use provider/host test doubles, not a production GlitchTip account.
 A deployed durable observation service, actual provider/host persistence readback and browser acceptance remain integration work. The tests above use local HTTP and provider/host test doubles.
 
 The source-scoped pager comes from panel SDK 0.2.3. Source switching resets cursors, suppresses late state and removes abort listeners; no polling is added. Host permission checks remain authoritative.
+
+## Durable manual observation and recovery
+
+The optional operator command is a real server-side entry point for one issue
+observation. It uses the existing provider adapter and signed server SDK. It
+creates no card, requests no approval, changes no workflow and adds no polling.
+The administrator must first approve the `--publish-signals` declaration, create
+an authorized native inbound connection, select the project resource and grant
+board signal publication. Configuration is private operator data, not a public
+manifest or a source-controlled company mapping:
+
+```json
+{
+  "hostOrigin": "https://board.example",
+  "providerOrigin": "https://errors.example",
+  "scope": {
+    "boardUID": "<board uid>", "resourceUID": "<selected resource uid>",
+    "projectId": "<provider project id>", "projectSlug": "<provider slug>",
+    "appRevision": "<current app revision>", "bindingRevision": "<current binding revision>"
+  }
+}
+```
+
+Inject `LANGBOARD_APP_TOKEN` and the separate `GLITCHTIP_READ_TOKEN` through the
+operator secret mechanism. Do not put tokens in the config or command arguments.
+The config and saved envelope are limited to 16 KiB. A private existing directory
+on durable Unix storage is required; file creation uses exclusive mode `0600`
+and flushes the file and directory before publication.
+
+```sh
+node observation.mjs observe /private/app-config.json /private/issue-observation.json 42 2026-10-10T00:02:00Z
+node observation.mjs resend /private/app-config.json /private/issue-observation.json
+```
+
+Supply the actual observation time. The first command reads the provider once,
+stores only whitelisted metadata, then publishes. It refuses to overwrite an
+existing envelope. A lost receipt leaves that file for explicit reconciliation;
+`resend` publishes the same event identity and bytes without reading the provider
+again. The saved board/resource and approval revisions must still match the
+private config; changed mapping requires a fresh observation, not retargeting.
+The host independently checks current authority and handles duplicate events.
+Output contains only the native signal UID and duplicate flag; errors omit
+provider responses and credentials. Partial or malformed files are rejected.
+
+Tests exercise real temporary file persistence and recovery with provider/host
+transport doubles. Actual provider access, deployed durable storage, native
+signal readback and browser integration are still separate acceptance gates.

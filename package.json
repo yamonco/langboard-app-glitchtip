@@ -8,7 +8,7 @@
   },
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test panel.test.mjs archive.test.mjs provider-api.test.mjs archive-receiver.test.mjs signals.test.mjs",
+    "test": "node --test panel.test.mjs archive.test.mjs provider-api.test.mjs archive-receiver.test.mjs signals.test.mjs observation.test.mjs",
     "manifest": "node server.mjs --manifest"
   },
   "dependencies": {
