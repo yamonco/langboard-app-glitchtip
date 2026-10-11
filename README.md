@@ -163,3 +163,12 @@ Observation recovery now uses server SDK 0.1.3 `signalStore`. Saved batches bind
 both host/provider origins and current mapping revisions. Legacy envelope-only
 files require manual reconciliation and cannot be automatically replayed; never
 infer a missing destination. Credentials remain environment-only.
+
+## Installable static package
+
+Run `npm ci` and `npm run package` with Node 22 and Python 3.12 or newer.
+The command uses the pinned standalone SDK wheel to build a deterministic ZIP in `dist/`.
+Publish that ZIP as a release asset whose stable tag matches the declaration version.
+The ZIP installs only public panel assets and the declaration. Server executors and credentials
+remain in a separately operated service. The installed host provides its verified UI origin;
+board permissions and resource selection remain explicit after central installation.
