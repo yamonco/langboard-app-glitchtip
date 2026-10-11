@@ -73,3 +73,9 @@ test('CLI accepts the documented observe arguments and returns sanitized failure
   assert.ok(result.stderr.includes('Observation failed;'));
   assert.ok(!result.stderr.includes('Usage:'));
 });
+
+test('CLI rejects extra arguments instead of ignoring them', () => {
+  const result = spawnSync(process.execPath, ['observation.mjs', 'observe', 'config.json', 'event.json', '42', '2026-10-10T00:02:00Z', 'extra'], { encoding: 'utf8' });
+  assert.equal(result.status, 2);
+  assert.ok(result.stderr.includes('Usage:'));
+});
