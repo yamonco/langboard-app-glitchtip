@@ -13,7 +13,7 @@ export function configuration(env = process.env) {
   return { hostOrigin: host.origin, publicUrl: publicUrl.origin };
 }
 export function declaration(config, { workflowCards = false, interactions = false } = {}) {
-  if (interactions && (!workflowCards || true)) throw new Error("Interactions require a supported workflow card profile");
+  if (interactions) throw new Error("Interactions require a supported workflow card profile");
   const manifest = { schema_version: 1, key: 'glitchtip-panel', version: '0.1.1', name: 'GlitchTip Panel', description: 'Issue status observations from the authorized Langboard signal inbox.', capabilities: ['panels.render', 'signals.read'], signal_sources: ['glitchtip'], resource_types: ['project'], panel: { url: config.publicUrl + '/', name: 'GlitchTip', icon: 'glitchtip' } };
   if (!workflowCards) return manifest;
   return { ...manifest, schema_version: 2, version: '0.2.0',
@@ -24,7 +24,8 @@ export function declaration(config, { workflowCards = false, interactions = fals
   };
 
 }
-export function panelServer(config = configuration(), { receiveArchive } = {}) {
+export function panelServer(config = configuration(), { receiveArchive, workflowCards = false, interactions = false } = {}) {
+  const manifest = declaration(config, { workflowCards, interactions });
   const paths = new Map([
     ['/', ['public/index.html', 'text/html; charset=utf-8']],
     ['/panel.mjs', ['public/panel.mjs', 'text/javascript; charset=utf-8']],
@@ -50,7 +51,7 @@ export function panelServer(config = configuration(), { receiveArchive } = {}) {
     if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405, { Allow: 'GET, HEAD' }); res.end(); return; }
     let body, type;
     if (req.url === '/config.mjs') { body = `export default ${JSON.stringify({hostOrigin: config.hostOrigin})};`; type = 'text/javascript; charset=utf-8'; }
-    else if (req.url === '/manifest.json') { body = JSON.stringify(declaration(config)); type = 'application/json'; }
+    else if (req.url === '/manifest.json') { body = JSON.stringify(manifest); type = 'application/json'; }
     else {
       const asset = paths.get(req.url);
       if (!asset) { res.writeHead(404); res.end('Not found'); return; }
@@ -62,6 +63,7 @@ export function panelServer(config = configuration(), { receiveArchive } = {}) {
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const config = configuration();
-  if (process.argv.includes('--manifest')) process.stdout.write(JSON.stringify(declaration(config, { workflowCards: process.argv.includes("--workflow-cards"), interactions: process.argv.includes("--interactions") }), null, 2) + '\n');
-  else panelServer(config).listen(Number(process.env.PORT || 8780), process.env.HOST || '127.0.0.1', () => console.log('GlitchTip panel listening'));
+  const profile = { workflowCards: process.argv.includes("--workflow-cards"), interactions: process.argv.includes("--interactions") };
+  if (process.argv.includes('--manifest')) process.stdout.write(JSON.stringify(declaration(config, profile), null, 2) + '\n');
+  else panelServer(config, profile).listen(Number(process.env.PORT || 8780), process.env.HOST || '127.0.0.1', () => console.log('GlitchTip panel listening'));
 }

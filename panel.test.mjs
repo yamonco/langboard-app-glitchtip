@@ -71,3 +71,16 @@ test('render uses host widgets, Korean labels and readonly signal evidence', () 
   assert.ok(nodes.some(node => node.children?.some(child => typeof child === 'string' && child.includes('관측'))));
   assert.equal(nodes.filter(node => node.type === Input).length, 1);
 });
+
+
+test('HTTP manifest preserves the explicit workflow profile', async t => {
+  const config = configuration({ HOST_ORIGIN: 'https://host.example', PUBLIC_URL: 'https://panel.example' });
+  const profile = { workflowCards: true };
+  const server = panelServer(config, profile);
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const manifest = await (await fetch(`http://127.0.0.1:${server.address().port}/manifest.json`)).json();
+  assert.deepEqual(manifest, declaration(config, profile));
+  assert.equal(manifest.schema_version, 2);
+  assert.ok(manifest.capabilities.includes('cards.create'));
+});
