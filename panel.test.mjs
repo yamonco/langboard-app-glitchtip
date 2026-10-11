@@ -14,7 +14,7 @@ test('public static routes, opaque iframe module CORS and declaration', async t 
     assert.match(response.headers.get('content-security-policy'), /frame-ancestors https:\/\/host.example/);
   }
   const manifest = await (await fetch(url + '/manifest.json')).json();
-  assert.deepEqual(manifest, declaration(config)); assert.deepEqual(manifest.capabilities, ['panels.render', 'signals.read']);
+  assert.deepEqual(manifest, declaration(config)); assert.deepEqual(manifest.capabilities, ['panels.render', 'signals.read']); assert.deepEqual(manifest.signal_sources, ['glitchtip']);
   for (const path of ['/server.mjs', '/package.json', '/sdk/index.mjs?other', '/%2e%2e/server.mjs']) assert.equal((await fetch(url + path)).status, 404);
   assert.equal((await fetch(url + '/', { method: 'POST' })).status, 405);
   assert.throws(() => configuration({ HOST_ORIGIN: 'https://host.example/path' }));

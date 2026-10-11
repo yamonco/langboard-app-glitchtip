@@ -12,7 +12,7 @@ export function configuration(env = process.env) {
   return { hostOrigin: host.origin, publicUrl: publicUrl.origin };
 }
 export function declaration(config) {
-  return { schema_version: 1, key: 'glitchtip-panel', version: '0.1.0', name: 'GlitchTip Panel', description: 'Issue status observations from the authorized Langboard signal inbox.', capabilities: ['panels.render', 'signals.read'], resource_types: ['project'], panel: { url: config.publicUrl + '/', name: 'GlitchTip', icon: 'glitchtip' } };
+  return { schema_version: 1, key: 'glitchtip-panel', version: '0.1.1', name: 'GlitchTip Panel', description: 'Issue status observations from the authorized Langboard signal inbox.', capabilities: ['panels.render', 'signals.read'], signal_sources: ['glitchtip'], resource_types: ['project'], panel: { url: config.publicUrl + '/', name: 'GlitchTip', icon: 'glitchtip' } };
 }
 export function panelServer(config = configuration()) {
   const paths = new Map([
