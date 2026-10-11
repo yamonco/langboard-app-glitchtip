@@ -12,7 +12,7 @@
     "manifest": "node server.mjs --manifest"
   },
   "dependencies": {
-    "@langboard/app-panel": "file:vendor/langboard-app-panel-0.2.2.tgz",
+    "@langboard/app-panel": "file:vendor/langboard-app-panel-0.2.3.tgz",
     "@langboard/app-server": "file:vendor/langboard-app-server-0.1.1.tgz"
   }
 }

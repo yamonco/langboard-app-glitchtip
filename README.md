@@ -32,7 +32,7 @@ pass it as `panelServer(config, { receiveArchive })`. This opens only
 Settings, permissions and real-provider acceptance remain pending. Provider tests
 use controlled HTTP responses; they do not claim a deployed account was changed.
 
-Standalone third party Langboard panel service. Node 22.13 or newer; no core checkout, React installation, copied theme, or browser provider credentials. The vendored npm SDK package version 0.2.2, including its signal request channel, provides the browser bridge. The separate vendored @langboard/app-server 0.1.1 provides server-only archive processing and is never exposed as a browser asset.
+Standalone third party Langboard panel service. Node 22.13 or newer; no core checkout, React installation, copied theme, or browser provider credentials. The vendored npm SDK package version 0.2.3, including its signal request channel, provides the browser bridge. The separate vendored @langboard/app-server 0.1.1 provides server-only archive processing and is never exposed as a browser asset.
 
 ```sh
 npm ci
@@ -105,3 +105,5 @@ No private diagnostics or original issue body is sent to Langboard. Node tests
 use provider/host test doubles, not a production GlitchTip account.
 
 A deployed durable observation service, actual provider/host persistence readback and browser acceptance remain integration work. The tests above use local HTTP and provider/host test doubles.
+
+The source-scoped pager comes from panel SDK 0.2.3. Source switching resets cursors, suppresses late state and removes abort listeners; no polling is added. Host permission checks remain authoritative.
