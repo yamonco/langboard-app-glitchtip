@@ -19,7 +19,7 @@ export function declaration(config, { workflowCards = false, interactions = fals
   return { ...manifest, schema_version: 2, version: '0.2.0',
     capabilities: [...manifest.capabilities, 'cards.read', 'cards.create', 'events.receive', ...(interactions ? ['interactions.request'] : [])],
     card_lifecycle: cardLifecycle,
-    
+
     trust: { authentication_origins: [], mcp_origins: [], data_origins: [config.publicUrl] },
   };
 
