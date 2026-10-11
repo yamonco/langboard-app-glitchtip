@@ -51,6 +51,26 @@ test('oversized or malformed saved observation never publishes', async () => {
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
+test('HTTP success without a receipt preserves the event for explicit recovery', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'glitchtip-observation-'));
+  try {
+    const path = join(directory, 'event.json'); let reads = 0; const bodies = [];
+    const request = async (url, options) => {
+      if (url.startsWith(config.providerOrigin)) { reads++; return { ok: true, json: async () => row }; }
+      bodies.push(options.body);
+      return { ok: true, json: async () => bodies.length === 1 ? {} : { signal_uid: 'signal00001', duplicate: true } };
+    };
+    const args = { path, config, credentials, issueId: '42', observedAt: '2026-10-10T00:02:00Z' };
+    await assert.rejects(runObservation(args, request), /outcome unknown: invalid receipt/);
+    assert.equal(bodies.length, 1);
+    const saved = await readFile(path, 'utf8');
+    assert.equal((await runObservation({ ...args, resend: true }, request)).duplicate, true);
+    assert.equal(reads, 1);
+    assert.deepEqual(bodies[0], bodies[1]);
+    assert.equal(await readFile(path, 'utf8'), saved);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
 test('saved events cannot be retargeted to another resource or approval revision', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'glitchtip-observation-'));
   try {

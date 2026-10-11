@@ -32,7 +32,7 @@ pass it as `panelServer(config, { receiveArchive })`. This opens only
 Settings, permissions and real-provider acceptance remain pending. Provider tests
 use controlled HTTP responses; they do not claim a deployed account was changed.
 
-Standalone third party Langboard panel service. Node 22.13 or newer; no core checkout, React installation, copied theme, or browser provider credentials. The vendored npm SDK package version 0.2.3, including its signal request channel, provides the browser bridge. The separate vendored @langboard/app-server 0.1.1 provides server-only archive processing and is never exposed as a browser asset.
+Standalone third party Langboard panel service. Node 22.13 or newer; no core checkout, React installation, copied theme, or browser provider credentials. The vendored npm SDK package version 0.2.3, including its signal request channel, provides the browser bridge. The separate vendored @langboard/app-server 0.1.2 provides server-only archive processing and is never exposed as a browser asset.
 
 ```sh
 npm ci
@@ -98,7 +98,7 @@ bounded history and abort lifetime. A source change cannot let a late response
 from the previous source overwrite the new view. This selector does not grant
 signal consent or provider authority; the host still enforces both.
 
-The shared server SDK is pinned at 0.1.1. It signs the exact bounded JSON bytes,
+The shared server SDK is pinned at 0.1.2. It signs the exact bounded JSON bytes,
 uses a configured HTTPS host origin, rejects redirects and does not retry unknown
 publication. Provider credentials and the native host credential are separate.
 No private diagnostics or original issue body is sent to Langboard. Node tests
@@ -154,3 +154,7 @@ provider responses and credentials. Partial or malformed files are rejected.
 Tests exercise real temporary file persistence and recovery with provider/host
 transport doubles. Actual provider access, deployed durable storage, native
 signal readback and browser integration are still separate acceptance gates.
+
+HTTP success without a valid native signal receipt remains an unknown outcome.
+The SDK rejects that response; the observation file stays intact for explicit
+reconciliation and resend. No provider reread or automatic replay is performed.
