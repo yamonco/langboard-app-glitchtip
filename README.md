@@ -28,7 +28,7 @@ The current signal panel does not call this handler. Signed host delivery,
 settings, permissions and real-provider acceptance remain pending. Provider tests
 use controlled HTTP responses; they do not claim a deployed account was changed.
 
-Standalone third party Langboard panel service. Node 22 or newer; no core checkout, React installation, copied theme, or browser provider credentials. The vendored npm SDK package version 0.2.0, including its signal request channel, is the only dependency.
+Standalone third party Langboard panel service. Node 22.13 or newer; no core checkout, React installation, copied theme, or browser provider credentials. The vendored npm SDK package version 0.2.0, including its signal request channel, provides the browser bridge. The separate vendored @langboard/app-server 0.1.0 provides server-only archive processing and is never exposed as a browser asset.
 
 ```sh
 npm ci
