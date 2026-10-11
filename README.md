@@ -158,3 +158,8 @@ signal readback and browser integration are still separate acceptance gates.
 HTTP success without a valid native signal receipt remains an unknown outcome.
 The SDK rejects that response; the observation file stays intact for explicit
 reconciliation and resend. No provider reread or automatic replay is performed.
+
+Observation recovery now uses server SDK 0.1.3 `signalStore`. Saved batches bind
+both host/provider origins and current mapping revisions. Legacy envelope-only
+files require manual reconciliation and cannot be automatically replayed; never
+infer a missing destination. Credentials remain environment-only.

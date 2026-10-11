@@ -28,7 +28,7 @@ test('lost publication retains durable metadata and explicit resend does not rer
     await assert.rejects(runObservation(args, request), /Lost receipt/);
     const saved = await readFile(path, 'utf8');
     assert.ok(!saved.includes(credentials.hostToken) && !saved.includes(credentials.providerToken) && !saved.includes(row.privateMessage));
-    assert.equal((await loadObservation(path)).outcome, 'unresolved');
+    assert.equal((await loadObservation(path)).envelopes[0].outcome, 'unresolved');
     const receipt = await runObservation({ ...args, resend: true }, request);
     assert.equal(receipt.duplicate, true);
     assert.equal(reads, 1);
@@ -81,7 +81,7 @@ test('saved events cannot be retargeted to another resource or approval revision
     let calls = 0;
     for (const patch of [{ resourceUID: 'other000001' }, { appRevision: 'c'.repeat(64) }]) {
       await assert.rejects(runObservation({ path, config: { ...config, scope: { ...config.scope, ...patch } }, credentials, resend: true },
-        async () => { calls++; }), /mapping changed/);
+        async () => { calls++; }), /destination changed/);
     }
     assert.equal(calls, 0);
   } finally { await rm(directory, { recursive: true, force: true }); }
