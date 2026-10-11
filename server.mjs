@@ -24,7 +24,7 @@ export function declaration(config, { workflowCards = false, interactions = fals
   };
 
 }
-export function panelServer(config = configuration()) {
+export function panelServer(config = configuration(), { receiveArchive } = {}) {
   const paths = new Map([
     ['/', ['public/index.html', 'text/html; charset=utf-8']],
     ['/panel.mjs', ['public/panel.mjs', 'text/javascript; charset=utf-8']],
@@ -38,6 +38,15 @@ export function panelServer(config = configuration()) {
     res.setHeader('Content-Security-Policy', `default-src 'none'; script-src 'self' ${config.hostOrigin} 'sha256-CW3/9VurNRsEoVwLSHTwxtl+RqJNXNV9uGC0faKjHdQ='; style-src 'self' ${config.hostOrigin}; connect-src 'none'; img-src 'self' data:; font-src ${config.hostOrigin}; frame-ancestors ${config.hostOrigin}; base-uri 'none'; form-action 'none'`);
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'no-store');
+    if (req.url === '/events/archive' && req.method === 'POST' && receiveArchive) {
+      try {
+        const chunks = []; let size = 0;
+        for await (const chunk of req) { size += chunk.length; if (size > 65536) { res.writeHead(413); res.end(); return; } chunks.push(chunk); }
+        const result = await receiveArchive(Buffer.concat(chunks), req.headers);
+        res.writeHead(result.state === 'processing' ? 409 : 200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify(result));
+      } catch { res.writeHead(403); res.end('Archive request unavailable'); }
+      return;
+    }
     if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405, { Allow: 'GET, HEAD' }); res.end(); return; }
     let body, type;
     if (req.url === '/config.mjs') { body = `export default ${JSON.stringify({hostOrigin: config.hostOrigin})};`; type = 'text/javascript; charset=utf-8'; }

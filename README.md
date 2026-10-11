@@ -24,8 +24,12 @@ The exact HTTPS origin and token stay server-side. Redirects and automatic retri
 are disabled, requests have a 15-second timeout, and issue identifiers are bounded.
 Use it with `archiveIssue(issueId, adapter, { enabled: true })` only after the host
 has validated the current owned card and explicit archive synchronization consent.
-The current signal panel does not call this handler. Signed host delivery,
-settings, permissions and real-provider acceptance remain pending. Provider tests
+The current signal panel does not call this handler. To enable the server-only
+archive endpoint, construct `archiveReceiver` with the shared SDK's durable store,
+configured host connection, signing secret and trusted per-issue mapping, then
+pass it as `panelServer(config, { receiveArchive })`. This opens only
+`POST /events/archive`, bounded to 64 KiB; the default CLI does not enable it.
+Settings, permissions and real-provider acceptance remain pending. Provider tests
 use controlled HTTP responses; they do not claim a deployed account was changed.
 
 Standalone third party Langboard panel service. Node 22.13 or newer; no core checkout, React installation, copied theme, or browser provider credentials. The vendored npm SDK package version 0.2.0, including its signal request channel, provides the browser bridge. The separate vendored @langboard/app-server 0.1.0 provides server-only archive processing and is never exposed as a browser asset.
