@@ -91,9 +91,12 @@ retry, card creation, triage, human approval or workflow transition is performed
 app version 0.2.1 and `signals.publish` consent. It is independent from
 `--workflow-cards`. Approval, native inbound connection credentials, resource
 selection and board consent are required before publication. This declaration
-adds the external app's own signal source; the existing panel still requests the
-legacy `glitchtip` inbox provider. Rendering external-app observations through
-that panel and a deployed durable observation service remain integration work.
+adds the external app's own signal source. When that profile is enabled, the
+panel receives the declared source list from `/config.mjs` and lets the user
+select `glitchtip` or `glitchtip-panel`; each source has an independent cursor,
+bounded history and abort lifetime. A source change cannot let a late response
+from the previous source overwrite the new view. This selector does not grant
+signal consent or provider authority; the host still enforces both.
 
 The shared server SDK is pinned at 0.1.1. It signs the exact bounded JSON bytes,
 uses a configured HTTPS host origin, rejects redirects and does not retry unknown

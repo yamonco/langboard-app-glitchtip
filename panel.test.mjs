@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { panelServer, configuration, declaration } from './server.mjs';
-import { createInbox, visibleItems, provider } from './public/inbox.mjs';
+import { createInbox, createSourceInbox, visibleItems, provider } from './public/inbox.mjs';
 
 test('workflow declaration is opt-in and never enables issue resolution by itself', () => {
   const config = configuration({ PUBLIC_URL: 'https://panel.example' });
@@ -54,7 +54,7 @@ import { createPanel } from './public/view.mjs';
 test('render uses host widgets, Korean labels and readonly signal evidence', () => {
   const row = {provider, signal_uid: '1', resource_name: 'demo', external_id: '42', event_type: 'observed', outcome: 'failed', occurred_at: '2026-10-10', time_basis: 'observation'};
   let index = 0;
-  const initial = [{items:[row], nextCursor:'Cursor1', busy:false, error:''}, '', ''];
+  const initial = [{items:[row], nextCursor:'Cursor1', busy:false, error:'', source: provider}, '', '', provider];
   const React = {
     createElement: (type, props, ...children) => ({type, props, children}),
     useState: () => [initial[index++], () => {}],
@@ -83,4 +83,40 @@ test('HTTP manifest preserves the explicit workflow profile', async t => {
   assert.deepEqual(manifest, declaration(config, profile));
   assert.equal(manifest.schema_version, 2);
   assert.ok(manifest.capabilities.includes('cards.create'));
+});
+
+test('published source selection follows the HTTP declaration without granting authority', async t => {
+  const config = configuration({ PUBLIC_URL: 'https://panel.example' });
+  const server = panelServer(config, { publishSignals: true });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const url = `http://127.0.0.1:${server.address().port}`;
+  const manifest = await (await fetch(url + '/manifest.json')).json();
+  const module = await (await fetch(url + '/config.mjs')).text();
+  const browserConfig = JSON.parse(module.slice('export default '.length, -1));
+  assert.deepEqual(browserConfig.signalSources, ['glitchtip', 'glitchtip-panel']);
+  assert.deepEqual(browserConfig.signalSources, manifest.signal_sources);
+  assert.deepEqual(Object.keys(browserConfig).sort(), ['hostOrigin', 'signalSources']);
+});
+
+test('source change drops old replies and cursors; disposal and effect replay remain safe', async () => {
+  const abort = new AbortController(), requests = [], published = [];
+  let release;
+  const session = { signal: abort.signal, request: async (_operation, params) => {
+    requests.push(params);
+    if (params.provider === 'glitchtip') return new Promise(resolve => { release = resolve; });
+    return {items: [{provider: 'glitchtip-panel', external_id:'42'}], next_cursor:'Cursor2'};
+  }};
+  const old = createSourceInbox(session, state => published.push(state), 'glitchtip');
+  const pending = old.start(); old.dispose();
+  const current = createSourceInbox(session, state => published.push(state), 'glitchtip-panel');
+  await current.start(); const count = published.length;
+  release({items:[{provider:'glitchtip', external_id:'old'}], next_cursor:'Cursor1'}); await pending;
+  assert.equal(published.length, count);
+  assert.equal(published.at(-1).source, 'glitchtip-panel');
+  assert.equal(visibleItems(published.at(-1).items, '', '', 'glitchtip-panel').length, 1);
+  await current.load(true); assert.deepEqual(requests.at(-1), {provider:'glitchtip-panel', after:'Cursor2'});
+  current.dispose(); await current.start(); assert.deepEqual(requests.at(-1), {provider:'glitchtip-panel'});
+  abort.abort(); const before = requests.length; await current.load(); assert.equal(requests.length, before);
+  current.dispose();
 });

@@ -52,7 +52,7 @@ export function panelServer(config = configuration(), { receiveArchive, workflow
     }
     if (!['GET', 'HEAD'].includes(req.method)) { res.writeHead(405, { Allow: 'GET, HEAD' }); res.end(); return; }
     let body, type;
-    if (req.url === '/config.mjs') { body = `export default ${JSON.stringify({hostOrigin: config.hostOrigin})};`; type = 'text/javascript; charset=utf-8'; }
+    if (req.url === '/config.mjs') { body = `export default ${JSON.stringify({hostOrigin: config.hostOrigin, signalSources: manifest.signal_sources})};`; type = 'text/javascript; charset=utf-8'; }
     else if (req.url === '/manifest.json') { body = JSON.stringify(manifest); type = 'application/json'; }
     else {
       const asset = paths.get(req.url);
