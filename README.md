@@ -7,8 +7,17 @@ against a caller-owned authenticated `readIssue`/`resolveIssue` adapter. It chec
 the same issue identity and confirms resolved state after writing. Already
 resolved issues do not repeat writes; uncertain writes return unknown. Archived
 card restoration does not unresolve the issue. Events and recurrence are retained.
-The current signal panel does not call this handler. HTTP adapter, signed host
-delivery, settings, permissions and provider acceptance remain pending.
+`provider-api.mjs` now supplies a caller-owned authenticated HTTP adapter:
+`glitchtipApi({ origin, token })`. It uses the
+[GlitchTip v6.2.6 issue API](https://gitlab.com/glitchtip/glitchtip-backend/-/blob/v6.2.6/apps/issue_events/api/issues.py):
+`GET /api/0/issues/{id}/` and `PUT` with `{ "status": "resolved" }`.
+The exact HTTPS origin and token stay server-side. Redirects and automatic retries
+are disabled, requests have a 15-second timeout, and issue identifiers are bounded.
+Use it with `archiveIssue(issueId, adapter, { enabled: true })` only after the host
+has validated the current owned card and explicit archive synchronization consent.
+The current signal panel does not call this handler. Signed host delivery,
+settings, permissions and real-provider acceptance remain pending. Provider tests
+use controlled HTTP responses; they do not claim a deployed account was changed.
 
 Standalone third party Langboard panel service. Node 22 or newer; no core checkout, React installation, copied theme, or browser provider credentials. The vendored npm SDK package version 0.2.0, including its signal request channel, is the only dependency.
 
