@@ -55,7 +55,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [mode, configPath, outputPath, issueId, observedAt] = process.argv.slice(2);
   if (!['observe', 'resend'].includes(mode) || !configPath || !outputPath ||
       (mode === 'observe' && (!issueId || !observedAt)) ||
-      (mode === 'resend' && (issueId || observedAt)) || process.argv.length > 7) {
+      (mode === 'resend' && (issueId || observedAt)) || process.argv.length > 8) {
     console.error('Usage: observation.mjs observe CONFIG FILE ISSUE_ID OBSERVED_AT | resend CONFIG FILE');
     process.exitCode = 2;
   } else {

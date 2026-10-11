@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, stat, writeFile, rm } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { runObservation, loadObservation } from './observation.mjs';
@@ -64,4 +65,11 @@ test('saved events cannot be retargeted to another resource or approval revision
     }
     assert.equal(calls, 0);
   } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test('CLI accepts the documented observe arguments and returns sanitized failure', () => {
+  const result = spawnSync(process.execPath, ['observation.mjs', 'observe', '/nonexistent/config.json', '/nonexistent/event.json', '42', '2026-10-10T00:02:00Z'], { encoding: 'utf8' });
+  assert.equal(result.status, 1);
+  assert.ok(result.stderr.includes('Observation failed;'));
+  assert.ok(!result.stderr.includes('Usage:'));
 });
