@@ -75,3 +75,28 @@ create a card, grant consent, connect a provider or activate external actions.
 GlitchTip rejects the interaction profile until its interaction receiver is
 implemented. Archive receiver injection is a separate server composition;
 starting a workflow profile alone does not enable `/events/archive`.
+
+
+## Explicit issue observations
+
+`signals.mjs` runs in the external server and uses `glitchtipApi.readIssue`,
+whitelisting ID, project, status and timestamps. `observeIssue` requires a trusted
+project/board/resource mapping, explicit observation time, server credentials
+and an awaited `saveEnvelope` callback. Persist that envelope before sending it.
+A lost response must be reconciled by explicitly resubmitting the same envelope;
+calling observe again creates a new observation identity. No polling, automatic
+retry, card creation, triage, human approval or workflow transition is performed.
+
+`--publish-signals` offers the finite `issue.status_observed` signal policy under
+app version 0.2.1 and `signals.publish` consent. It is independent from
+`--workflow-cards`. Approval, native inbound connection credentials, resource
+selection and board consent are required before publication. This declaration
+adds the external app's own signal source; the existing panel still requests the
+legacy `glitchtip` inbox provider. Rendering external-app observations through
+that panel and a deployed durable observation service remain integration work.
+
+The shared server SDK is pinned at 0.1.1. It signs the exact bounded JSON bytes,
+uses a configured HTTPS host origin, rejects redirects and does not retry unknown
+publication. Provider credentials and the native host credential are separate.
+No private diagnostics or original issue body is sent to Langboard. Node tests
+use provider/host test doubles, not a production GlitchTip account.

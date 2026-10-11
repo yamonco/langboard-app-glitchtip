@@ -1,4 +1,5 @@
 import { cardLifecycle } from './archive.mjs';
+import { signalPolicy } from './signals.mjs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
@@ -12,20 +13,21 @@ export function configuration(env = process.env) {
   if (publicUrl.protocol !== 'https:' || publicUrl.username || publicUrl.password || publicUrl.hash || publicUrl.search || publicUrl.pathname !== '/') throw new Error('PUBLIC_URL must be an HTTPS origin');
   return { hostOrigin: host.origin, publicUrl: publicUrl.origin };
 }
-export function declaration(config, { workflowCards = false, interactions = false } = {}) {
+export function declaration(config, { workflowCards = false, interactions = false, publishSignals = false } = {}) {
   if (interactions) throw new Error("Interactions require a supported workflow card profile");
   const manifest = { schema_version: 1, key: 'glitchtip-panel', version: '0.1.1', name: 'GlitchTip Panel', description: 'Issue status observations from the authorized Langboard signal inbox.', capabilities: ['panels.render', 'signals.read'], signal_sources: ['glitchtip'], resource_types: ['project'], panel: { url: config.publicUrl + '/', name: 'GlitchTip', icon: 'glitchtip' } };
-  if (!workflowCards) return manifest;
-  return { ...manifest, schema_version: 2, version: '0.2.0',
-    capabilities: [...manifest.capabilities, 'cards.read', 'cards.create', 'events.receive', ...(interactions ? ['interactions.request'] : [])],
-    card_lifecycle: cardLifecycle,
+  if (!workflowCards && !publishSignals) return manifest;
+  return { ...manifest, schema_version: 2, version: publishSignals ? '0.2.1' : '0.2.0',
+    capabilities: [...manifest.capabilities, ...(workflowCards ? ['cards.read', 'cards.create', 'events.receive'] : []), ...(publishSignals ? ['signals.publish'] : [])],
+    ...(workflowCards ? { card_lifecycle: cardLifecycle } : {}),
+    ...(publishSignals ? { signal_policy: signalPolicy, signal_sources: [...manifest.signal_sources, manifest.key] } : {}),
 
     trust: { authentication_origins: [], mcp_origins: [], data_origins: [config.publicUrl] },
   };
 
 }
-export function panelServer(config = configuration(), { receiveArchive, workflowCards = false, interactions = false } = {}) {
-  const manifest = declaration(config, { workflowCards, interactions });
+export function panelServer(config = configuration(), { receiveArchive, workflowCards = false, interactions = false, publishSignals = false } = {}) {
+  const manifest = declaration(config, { workflowCards, interactions, publishSignals });
   const paths = new Map([
     ['/', ['public/index.html', 'text/html; charset=utf-8']],
     ['/panel.mjs', ['public/panel.mjs', 'text/javascript; charset=utf-8']],
@@ -63,7 +65,7 @@ export function panelServer(config = configuration(), { receiveArchive, workflow
 }
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const config = configuration();
-  const profile = { workflowCards: process.argv.includes("--workflow-cards"), interactions: process.argv.includes("--interactions") };
+  const profile = { workflowCards: process.argv.includes("--workflow-cards"), interactions: process.argv.includes("--interactions"), publishSignals: process.argv.includes("--publish-signals") };
   if (process.argv.includes('--manifest')) process.stdout.write(JSON.stringify(declaration(config, profile), null, 2) + '\n');
   else panelServer(config, profile).listen(Number(process.env.PORT || 8780), process.env.HOST || '127.0.0.1', () => console.log('GlitchTip panel listening'));
 }
