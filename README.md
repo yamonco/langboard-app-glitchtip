@@ -1,5 +1,14 @@
 # GlitchTip panel
 
+## Optional workflow declaration
+
+Generate `node server.mjs --manifest --workflow-cards` for a separately reviewed
+schema v2 profile with `cards.read`, `cards.create`, `events.receive`, the issue
+lifecycle policy and the configured public data origin. Default `/manifest.json`
+and CLI manifest stay read-only. Instance approval, owning connection/resource
+selection and board grants remain required. A declaration does not start the
+receiver or enable issue resolution; explicit archive consent is separate.
+
 ## Optional issue archive adapter
 
 `archive.mjs` declares disabled-by-default archive synchronization and a resolver

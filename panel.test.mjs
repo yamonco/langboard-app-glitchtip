@@ -3,6 +3,16 @@ import assert from 'node:assert/strict';
 import { panelServer, configuration, declaration } from './server.mjs';
 import { createInbox, visibleItems, provider } from './public/inbox.mjs';
 
+test('workflow declaration is opt-in and never enables issue resolution by itself', () => {
+  const config = configuration({ PUBLIC_URL: 'https://panel.example' });
+  assert.equal(declaration(config).card_lifecycle, undefined);
+  const workflow = declaration(config, { workflowCards: true });
+  assert.equal(workflow.schema_version, 2);
+  assert.equal(workflow.card_lifecycle.issue.archive.default_enabled, false);
+  assert.equal(workflow.capabilities.includes('events.receive'), true);
+  assert.throws(() => declaration(config, { workflowCards: true, interactions: true }));
+});
+
 test('public static routes, opaque iframe module CORS and declaration', async t => {
   const config = configuration({ HOST_ORIGIN: 'https://host.example', PUBLIC_URL: 'https://panel.example' });
   const server = panelServer(config); await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
