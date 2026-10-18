@@ -72,6 +72,13 @@ HTTP declaration is generated at startup from that same explicit profile.
 These flags offer capabilities for approval; they do not register an app,
 create a card, grant consent, connect a provider or activate external actions.
 
+Workflow profile 0.2.2 declares the host's built-in `active`, `review` and `closed`
+stages so the shared board mapping editor can configure destinations. It adds no
+app-specific stages and does not request `workflow.transition`. The default
+read-only panel and signal-only profile have no workflow requirement. Issue
+resolution remains observation evidence; it does not close or archive a card.
+An optional evidence-gated closed transition is not implemented by this profile.
+
 GlitchTip rejects the interaction profile until its interaction receiver is
 implemented. Archive receiver injection is a separate server composition;
 starting a workflow profile alone does not enable `/events/archive`.

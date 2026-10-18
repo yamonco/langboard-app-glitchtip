@@ -17,9 +17,9 @@ export function declaration(config, { workflowCards = false, interactions = fals
   if (interactions) throw new Error("Interactions require a supported workflow card profile");
   const manifest = { schema_version: 1, key: 'glitchtip-panel', version: '0.1.1', name: 'GlitchTip Panel', description: 'Issue status observations from the authorized Langboard signal inbox.', capabilities: ['panels.render', 'signals.read'], signal_sources: ['glitchtip'], resource_types: ['project'], panel: { url: config.publicUrl + '/', name: 'GlitchTip', icon: 'glitchtip' } };
   if (!workflowCards && !publishSignals) return manifest;
-  return { ...manifest, schema_version: 2, version: publishSignals ? '0.2.1' : '0.2.0',
+  return { ...manifest, schema_version: 2, version: workflowCards ? '0.2.2' : '0.2.1',
     capabilities: [...manifest.capabilities, ...(workflowCards ? ['cards.read', 'cards.create', 'events.receive'] : []), ...(publishSignals ? ['signals.publish'] : [])],
-    ...(workflowCards ? { card_lifecycle: cardLifecycle } : {}),
+    ...(workflowCards ? { card_lifecycle: cardLifecycle, workflow_requirements: { required: ['active', 'review', 'closed'], optional: [] } } : {}),
     ...(publishSignals ? { signal_policy: signalPolicy, signal_sources: [...manifest.signal_sources, manifest.key] } : {}),
 
     trust: { authentication_origins: [], mcp_origins: [], data_origins: [config.publicUrl] },

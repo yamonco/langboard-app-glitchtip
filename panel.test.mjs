@@ -6,10 +6,13 @@ import { createInbox, createSourceInbox, visibleItems, provider } from './public
 test('workflow declaration is opt-in and never enables issue resolution by itself', () => {
   const config = configuration({ PUBLIC_URL: 'https://panel.example' });
   assert.equal(declaration(config).card_lifecycle, undefined);
+  assert.equal(declaration(config).workflow_requirements, undefined);
   const workflow = declaration(config, { workflowCards: true });
   assert.equal(workflow.schema_version, 2);
   assert.equal(workflow.card_lifecycle.issue.archive.default_enabled, false);
   assert.equal(workflow.capabilities.includes('events.receive'), true);
+  assert.deepEqual(workflow.workflow_requirements, { required: ['active', 'review', 'closed'], optional: [] });
+  assert.equal(workflow.capabilities.includes('workflow.transition'), false);
   assert.throws(() => declaration(config, { workflowCards: true, interactions: true }));
 });
 
@@ -83,6 +86,7 @@ test('HTTP manifest preserves the explicit workflow profile', async t => {
   assert.deepEqual(manifest, declaration(config, profile));
   assert.equal(manifest.schema_version, 2);
   assert.ok(manifest.capabilities.includes('cards.create'));
+  assert.deepEqual(manifest.workflow_requirements, { required: ['active', 'review', 'closed'], optional: [] });
 });
 
 test('published source selection follows the HTTP declaration without granting authority', async t => {
