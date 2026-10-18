@@ -213,3 +213,50 @@ Local checks: app28 and server SDK9 pass, including disabled/unresolved/ignored,
 foreign issue/project, expiry, storage failure, immutable receipt and lost reply.
 These controlled HTTP tests do not prove an installed app, customer permissions
 or a deployed card transition. Real canary/provider acceptance remains pending.
+
+### Explicit command and restart recovery
+
+The server SDK now supplies the durable store; no custom `saveRequest` adapter is
+needed for this command. Keep the request file on persistent storage. Use a
+private JSON configuration with this shape (no tokens in the file):
+
+```json
+{
+  "hostOrigin": "https://board.example",
+  "providerOrigin": "https://errors.example",
+  "resolutionEnabled": true,
+  "scope": {
+    "boardUID": "board000001",
+    "cardUID": "card0000001",
+    "issueId": "42",
+    "projectId": "3",
+    "projectSlug": "example"
+  }
+}
+```
+
+The operator owns this card-to-issue mapping. Supply `LANGBOARD_APP_TOKEN` and
+`GLITCHTIP_READ_TOKEN` through the service secret environment. The provider token
+only needs issue read access for this flow. Run an explicit proposal with a
+stable request key and an ISO expiry within fifteen minutes:
+
+```sh
+node resolution-runner.mjs propose CONFIG_JSON PENDING_JSON REQUEST_KEY EXPIRES_AT
+node resolution-runner.mjs recover CONFIG_JSON PENDING_JSON
+```
+
+Proposal rereads the one configured issue and writes a new 0600 request file,
+syncing file and directory before submission. Existing pending files are never
+overwritten. Recovery loads that exact request, rejects changed host/provider/
+board/card/issue destinations and only performs a native host GET. It requires no
+provider credential and neither rereads the issue nor retries POST. Inspect the
+returned state; `missing` is not permission to invent a new observation or replay
+a write automatically. A disabled proposal requires no credentials and makes no
+HTTP calls. No scheduler, polling loop, provider mutation or extra database is
+introduced. This command still requires the optional approved app profile,
+current owning connection and board consent; it grants none of them itself.
+
+App30 and SDK10 controlled checks pass, including simulated lost replies followed
+by a restarted file-backed recovery, unchanged request content, secret exclusion,
+retargeting denial and disabled/absent-record behavior. Actual provider/canary
+acceptance remains unverified.
