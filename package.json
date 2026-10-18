@@ -8,12 +8,12 @@
   },
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test panel.test.mjs archive.test.mjs provider-api.test.mjs archive-receiver.test.mjs signals.test.mjs observation.test.mjs",
+    "test": "node --test panel.test.mjs archive.test.mjs provider-api.test.mjs archive-receiver.test.mjs signals.test.mjs observation.test.mjs resolution.test.mjs",
     "manifest": "node server.mjs --manifest",
     "package": "node package.mjs"
   },
   "dependencies": {
     "@langboard/app-panel": "file:vendor/langboard-app-panel-0.2.3.tgz",
-    "@langboard/app-server": "file:vendor/langboard-app-server-0.1.3.tgz"
+    "@langboard/app-server": "file:vendor/langboard-app-server-0.1.4.tgz"
   }
 }

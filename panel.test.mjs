@@ -13,7 +13,11 @@ test('workflow declaration is opt-in and never enables issue resolution by itsel
   assert.equal(workflow.capabilities.includes('events.receive'), true);
   assert.deepEqual(workflow.workflow_requirements, { required: ['active', 'review', 'closed'], optional: [] });
   assert.equal(workflow.capabilities.includes('workflow.transition'), false);
-  assert.throws(() => declaration(config, { workflowCards: true, interactions: true }));
+  assert.throws(() => declaration(config, { interactions: true }));
+  const interactive = declaration(config, { workflowCards: true, interactions: true });
+  assert.ok(interactive.capabilities.includes('interactions.request'));
+  assert.equal(interactive.card_interactions.issue[0].default_enabled, false);
+  assert.deepEqual(interactive.card_interactions.issue[0].choices, ['close', 'keep']);
 });
 
 test('public static routes, opaque iframe module CORS and declaration', async t => {

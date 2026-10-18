@@ -77,10 +77,13 @@ stages so the shared board mapping editor can configure destinations. It adds no
 app-specific stages and does not request `workflow.transition`. The default
 read-only panel and signal-only profile have no workflow requirement. Issue
 resolution remains observation evidence; it does not close or archive a card.
-An optional evidence-gated closed transition is not implemented by this profile.
+The separate 0.3.0 interaction profile (`--workflow-cards --interactions`) offers
+an optional resolution-review request. It adds `interactions.request`; it does not
+add automatic external actions or enable board transitions.
 
-GlitchTip rejects the interaction profile until its interaction receiver is
-implemented. Archive receiver injection is a separate server composition;
+The interaction profile requires workflow cards. Resolution requests are outbound
+native host API calls, not a provider-action receiver. Archive receiver injection
+is a separate server composition;
 starting a workflow profile alone does not enable `/events/archive`.
 
 
@@ -179,3 +182,34 @@ Publish that ZIP as a release asset whose stable tag matches the declaration ver
 The ZIP installs only public panel assets and the declaration. Server executors and credentials
 remain in a separately operated service. The installed host provides its verified UI origin;
 board permissions and resource selection remain explicit after central installation.
+
+## Optional resolution review
+
+Use `proposeIssueResolution` from `resolution.mjs` in your server-owned ingestion
+flow. Set `enabled: true` only for an explicitly enabled board/connection/card
+mapping. Supply a caller-owned `api.readIssue`, `issueId`, `scope` (`boardUID`,
+`projectId`, `projectSlug`), `cardUID`, stable `key`, explicit `expiresAt`, native
+`host` credential and durable `saveRequest` callback. It does nothing by default.
+
+The function rereads the provider and verifies issue/project identity and allowed
+status/timestamps. Only `resolved` produces a request. The request states the
+observation time and recurrence caveat and expires within fifteen minutes. It
+asks whether to close the card or keep it open; only the close choice maps to the
+host's built-in `closed` stage. It neither resolves the provider issue nor moves
+or archives the card. The host's current consent, ownership, saved destination,
+transition opt-in and human answer/apply checks remain required. An observation
+is not proof that the issue cannot recur after it was read.
+
+`saveRequest` must persist the complete object before returning; persistence
+failure prevents submission. After an unknown response, retain that object and
+use `cardInteractions(host).recover(saved.board_uid, saved.card_uid,
+saved.request)` from `@langboard/app-server/interactions`. Never rebuild the
+request from a newer provider observation under the same key or automatically
+retry creation. Reconcile a `missing` result explicitly. The SDK client performs
+no provider action or human-response acceptance. The service profile only offers
+capabilities for review; it does not start ingestion or enable this feature.
+
+Local checks: app28 and server SDK9 pass, including disabled/unresolved/ignored,
+foreign issue/project, expiry, storage failure, immutable receipt and lost reply.
+These controlled HTTP tests do not prove an installed app, customer permissions
+or a deployed card transition. Real canary/provider acceptance remains pending.
