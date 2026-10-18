@@ -260,3 +260,30 @@ App30 and SDK10 controlled checks pass, including simulated lost replies followe
 by a restarted file-backed recovery, unchanged request content, secret exclusion,
 retargeting denial and disabled/absent-record behavior. Actual provider/canary
 acceptance remains unverified.
+
+
+## Packaging optional profiles
+
+The default `npm run package -- /tmp/panel.zip` remains the read-only static
+panel. To offer workflow cards and explicit signal publication in a reviewed ZIP:
+
+```sh
+PUBLIC_URL=https://app.example.test npm run package -- /tmp/workflow-panel.zip --workflow-cards --publish-signals
+```
+
+GitHub/GlitchTip interaction declarations additionally require `--interactions`
+and `--workflow-cards`. Omit those flags when that feature is not offered.
+
+The supplied HTTPS `PUBLIC_URL` is the separately deployed app service's data
+origin. It is required for optional profiles and must not be a placeholder in
+an installed production declaration. The host serves the static panel after
+installation; server executors are still deployed separately. A selected profile
+offers capabilities for review and does not grant them, connect a provider,
+create cards or turn on workflow transitions/archive synchronization. Unknown
+flags and incomplete profiles fail instead of silently producing a read-only ZIP.
+
+All three reference apps reuse `@langboard/app-server/packaging` 0.1.6 and the
+pinned Python SDK 0.2.37 archive validator. No Langboard core checkout is needed.
+The ZIP contains portable panel SDK assets and themed icons, not the server,
+Python wheel, provider credentials or private configuration. Host and app tests
+must still verify the installed profile, current grants and actual provider flow.
